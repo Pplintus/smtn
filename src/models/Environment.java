@@ -1,0 +1,165 @@
+package models;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+
+public class Environment {
+    int range;
+    int all_Ag;
+    int num_P;
+    int num_R;
+    int num_W;
+
+    public Agent[][] field;
+
+    private int stepCounter = 0;
+
+
+    public Environment(int range, int num_P, int num_R, int num_W) {
+        this.range = range;
+        this.num_P = num_P;
+        this.num_R = num_R;
+        this.num_W = num_W;
+        this.all_Ag = num_P + num_R + num_W;
+
+        this.field = new Agent[range][range];
+
+        if (all_Ag > range * range) {
+            throw new IllegalArgumentException(
+                    "Слишком много агентов: " + all_Ag + " > " + (range * range)
+            );
+        }
+
+        placeAgents(num_P, "Plant", 6);
+        placeAgents(num_R, "Rabbit", 14);
+        placeAgents(num_W, "Wolf", 22);
+    }
+
+    public Environment(int range) {
+        this(range, range, range, range);
+    }
+
+
+    private void placeAgents(int count, String type, int startEnergy) {
+        int placed = 0;
+        int safetyCounter = 0;
+        int maxAttempts = range * range * 100; // заглушка, если в начальных условиях слишком много агентов
+
+        while (placed < count && safetyCounter < maxAttempts) {
+            int dx = ThreadLocalRandom.current().nextInt(0, range);
+            int dy = ThreadLocalRandom.current().nextInt(0, range);
+            safetyCounter++;
+
+            if (field[dx][dy] == null) {
+                int jitter = ThreadLocalRandom.current().nextInt(-2, 3);
+                int startNrg = Math.max(1, startEnergy + jitter);
+                field[dx][dy] = createAgent(type, dx, dy, startNrg);
+                placed++;
+            }
+        }
+    }
+
+    private Agent createAgent(String type, int x, int y, int energy) {
+        switch (type) {
+            case "Plant":  return new Plant(x, y, energy, field, range);
+            case "Rabbit": return new Rabbit(x, y, energy, field, range);
+            case "Wolf":   return new Wolf(x, y, energy, field, range);
+            default: throw new IllegalArgumentException(type);
+        }
+    }
+
+
+    private void updateLimits() {
+        int rabbits = count("Rabbit");
+        int wolves = count("Wolf");
+
+        // Кроликов мало - плодятся больше и быстрее (нужно меньше энергии)
+        if (rabbits < 30) {
+            Rabbit.currentDivideThreshold = 14;
+            Rabbit.currentMax = 250;
+        } else if (rabbits < 80) {
+            Rabbit.currentDivideThreshold = 16;
+            Rabbit.currentMax = 220;
+        } else {
+            Rabbit.currentDivideThreshold = 20;
+            Rabbit.currentMax = 180;
+        }
+
+        // Аналогично кроликам
+        if (wolves < 5) {
+            Wolf.currentDivideThreshold = 18;
+            Wolf.currentMax = 35;
+        } else if (wolves < 12) {
+            Wolf.currentDivideThreshold = 20;
+            Wolf.currentMax = 30;
+        } else {
+            Wolf.currentDivideThreshold = 24;
+            Wolf.currentMax = 22;
+        }
+    }
+
+    public void simulation() {
+        stepCounter++;
+        updateLimits();
+
+        // создаем копию и проходимся по ней. Копия - список. Оригинал - двумерный массив
+        List<Agent> snapshot = new ArrayList<>();
+        for (int i = 0; i < range; i++) {
+            for (int j = 0; j < range; j++) {
+                if (field[i][j] != null && field[i][j].isAlive()) {
+                    snapshot.add(field[i][j]);
+                }
+            }
+        }
+
+        for (Agent agent : snapshot) {
+            if (agent.isAlive()) {
+                agent.act();
+            }
+        }
+
+    }
+
+    public void show() {
+        for (int i = 0; i < range; i++) {
+            for (int j = 0; j < range; j++) {
+                String cellContent = " "; // По умолчанию клетка пустая (один пробел)
+
+                if (field[i][j] != null && field[i][j].isAlive()) {
+                    switch (field[i][j].getType()) {
+                        case "Plant":
+                            cellContent = "*";  // Plant
+                            break;
+                        case "Rabbit":
+                            cellContent = "R";  // Rabbit
+                            break;
+                        case "Wolf":
+                            cellContent = "W";  // Wolf
+                            break;
+                    }
+                }
+
+                // %-3s означает: вывести строку, выровнять по левому краю
+                // и дополнить пробелами до строго 3 символов в ширину
+                System.out.printf("|%-3s", cellContent);
+            }
+            System.out.printf("|%n");
+        }
+    }
+
+
+
+    public int count(String type) {
+        int c = 0;
+        for (int i = 0; i < range; i++) {
+            for (int j = 0; j < range; j++) {
+                if (field[i][j] != null && field[i][j].isAlive()
+                        && type.equals(field[i][j].getType())) {
+                    c++;
+                }
+            }
+        }
+        return c;
+    }
+}
