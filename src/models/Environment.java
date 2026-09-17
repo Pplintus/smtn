@@ -73,18 +73,10 @@ public class Environment {
         for (int step = 1; step <= maxIter; step++) {
             simulation();
 
-            if (step % 1 == 0) {
-                System.out.println("Шаг " + step);
-                show();
-                System.out.println();
-                printStats();
-            } else if (step % 500 == 0) {
-                System.out.printf("Шаг %d — Растения: %d, Кролики: %d, Волки: %d%n",
-                        step,
-                        count("Plant"),
-                        count("Rabbit"),
-                        count("Wolf"));
-            }
+            System.out.println("Шаг " + step);
+            show();
+            System.out.println();
+            printStats();
 
             if (count("Plant")  == 0) {
                 System.out.println("Растения вымерли на шаге " + step);
