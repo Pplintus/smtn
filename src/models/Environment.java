@@ -69,6 +69,63 @@ public class Environment {
         }
     }
 
+    public void showOne(int maxIter){
+        for (int step = 1; step <= maxIter; step++) {
+            simulation();
+
+            if (step % 1 == 0) {
+                System.out.println("Шаг " + step);
+                show();
+                System.out.println();
+                printStats();
+            } else if (step % 500 == 0) {
+                System.out.printf("Шаг %d — Растения: %d, Кролики: %d, Волки: %d%n",
+                        step,
+                        count("Plant"),
+                        count("Rabbit"),
+                        count("Wolf"));
+            }
+
+            if (count("Plant")  == 0) {
+                System.out.println("Растения вымерли на шаге " + step);
+                break;
+            }
+            if (count("Wolf") == 0) {
+                System.out.println("Волки вымерли на шаге " + step);
+                break;
+            }
+            if (count("Rabbit") == 0) {
+                System.out.println("Кролики вымерли на шаге " + step);
+                break;
+            }
+        }
+    }
+
+    public void showMore(int maxIter){
+        for (int step = 1; step <= maxIter; step++) {
+            simulation();
+
+            if (count("Plant")  == 0) {
+                System.out.println("Растения вымерли на шаге " + step);
+                break;
+            }
+            if (count("Wolf") == 0) {
+                System.out.println("Волки вымерли на шаге " + step);
+                break;
+            }
+            if (count("Rabbit") == 0) {
+                System.out.println("Кролики вымерли на шаге " + step);
+                break;
+            }
+        }
+    }
+
+    private void printStats() {
+        System.out.printf("Растения: %d, Кролики: %d, Волки: %d%n%n",
+                count("Plant"),
+                count("Rabbit"),
+                count("Wolf"));
+    }
 
     private void updateLimits() {
         int rabbits = count("Rabbit");
@@ -132,10 +189,10 @@ public class Environment {
                             cellContent = "*";  // Plant
                             break;
                         case "Rabbit":
-                            cellContent = "R";  // Rabbit
+                            cellContent = "T";  // Rabbit
                             break;
                         case "Wolf":
-                            cellContent = "W";  // Wolf
+                            cellContent = "X";  // Wolf
                             break;
                     }
                 }
@@ -162,4 +219,10 @@ public class Environment {
         }
         return c;
     }
+
+    public int getRange() { return range; }
+
+    public int getStep() { return stepCounter; }
+
+    public void step() { simulation(); }
 }

@@ -41,8 +41,10 @@ public class Rabbit extends Agent {
         }
 
         // 3. Свободное блуждание
-        move(ThreadLocalRandom.current().nextInt(-1, 2),
-                ThreadLocalRandom.current().nextInt(-1, 2));
+
+        int[][] dirs = {{-1,0},{1,0},{0,-1},{0,1}};
+        int[] d = dirs[ThreadLocalRandom.current().nextInt(dirs.length)];
+        move(d[0], d[1]);
 
         finishTurn();
     }

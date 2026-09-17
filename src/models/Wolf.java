@@ -30,8 +30,9 @@ public class Wolf extends Agent {
         }
 
         // Кроликов не видно — блуждаем
-        move(ThreadLocalRandom.current().nextInt(-1, 2),
-                ThreadLocalRandom.current().nextInt(-1, 2));
+        int[][] dirs = {{-1,0},{1,0},{0,-1},{0,1}};
+        int[] d = dirs[ThreadLocalRandom.current().nextInt(dirs.length)];
+        move(d[0], d[1]);
 
         finishTurn();
     }
