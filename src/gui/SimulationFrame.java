@@ -1,5 +1,6 @@
 package gui;
 
+import models.Agent;
 import models.Environment;
 
 import javax.swing.*;
@@ -14,6 +15,9 @@ public class SimulationFrame extends JFrame {
     private final JLabel plantLabel  = new JLabel("Растения: 0");
     private final JLabel rabbitLabel = new JLabel("Кролики: 0");
     private final JLabel wolfLabel   = new JLabel("Волки: 0");
+
+    /** Информация о выбранном кликом агенте. */
+    private final JLabel infoLabel = new JLabel("Кликните по агенту, чтобы увидеть его энергию");
 
     private final JButton startBtn = new JButton("Старт");
     private final JButton pauseBtn = new JButton("Пауза");
@@ -45,6 +49,9 @@ public class SimulationFrame extends JFrame {
         pauseBtn.addActionListener(e -> pause());
         stepBtn.addActionListener(e -> doOneStep());
 
+        // реакция на клик по агенту
+        worldPanel.setOnAgentClick(this::showAgentInfo);
+
         pauseBtn.setEnabled(false);
     }
 
@@ -59,7 +66,24 @@ public class SimulationFrame extends JFrame {
         p.add(plantLabel);
         p.add(rabbitLabel);
         p.add(wolfLabel);
+        p.add(infoLabel);   // информация о клике
         return p;
+    }
+
+    /** Показ информации об агенте, по которому кликнули. */
+    private void showAgentInfo(Agent a) {
+        String type = switch (a.getType()) {
+            case "Plant"  -> "Растение";
+            case "Rabbit" -> "Кролик";
+            case "Wolf"   -> "Волк";
+            default       -> a.getType();
+        };
+
+        String text = String.format(
+                "%s  |  энергия: %d  |  позиция: (%d, %d)",
+                type, a.getEnergy(), a.getX(), a.getY());
+
+        infoLabel.setText(text);
     }
 
     private void start() {

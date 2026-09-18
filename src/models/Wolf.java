@@ -6,9 +6,8 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Wolf extends Agent {
 
-    protected int visRange = 5;   // зрение у волка больше, чем у кролика, ибо кролики поахуевали
-    public static int currentMax = 30;
-    public static int currentDivideThreshold = 22;
+    protected int visRange = 2;
+    public static int currentDivideThreshold = 30;
 
     Wolf(int x, int y, int energy, Agent[][] field, int range) {
         super(x, y, energy, field, "Wolf", "Rabbit", range);
@@ -19,6 +18,7 @@ public class Wolf extends Agent {
 
     @Override
     public void act() {
+        energy--;
         List<int[]> found = look("Rabbit");
         if (!found.isEmpty()) {
             int[] t = near(found);
@@ -45,8 +45,8 @@ public class Wolf extends Agent {
         int py = prey.getY();
 
         // Волк получает энергию кролика + бонус за охоту
-        int bonus = 3;
-        energy += prey.getEnergy() + bonus;
+        int bonus = 0;
+        energy += prey.getEnergy()/2;
 
         field[x][y] = null;
         field[px][py] = null;
@@ -54,7 +54,6 @@ public class Wolf extends Agent {
 
         x = px; y = py;
         field[x][y] = this;
-        energy -= 1;
     }
 
     private void finishTurn() {
@@ -87,16 +86,6 @@ public class Wolf extends Agent {
         return best;
     }
 
-    @Override
-    protected boolean canDivide() {
-        int count = 0;
-        for (int i = 0; i < range; i++)
-            for (int j = 0; j < range; j++)
-                if (field[i][j] != null && field[i][j].isAlive()
-                        && "Wolf".equals(field[i][j].getType()))
-                    count++;
-        return count < currentMax;
-    }
 
     @Override
     protected Agent createChild(int cx, int cy, int e) {

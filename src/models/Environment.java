@@ -31,9 +31,9 @@ public class Environment {
             );
         }
 
-        placeAgents(num_P, "Plant", 6);
-        placeAgents(num_R, "Rabbit", 14);
-        placeAgents(num_W, "Wolf", 22);
+        placeAgents(num_P, "Plant", 8);
+        placeAgents(num_R, "Rabbit", 15);
+        placeAgents(num_W, "Wolf", 15);
     }
 
     public Environment(int range) {
@@ -119,38 +119,9 @@ public class Environment {
                 count("Wolf"));
     }
 
-    private void updateLimits() {
-        int rabbits = count("Rabbit");
-        int wolves = count("Wolf");
-
-        // Кроликов мало - плодятся больше и быстрее (нужно меньше энергии)
-        if (rabbits < 30) {
-            Rabbit.currentDivideThreshold = 14;
-            Rabbit.currentMax = 250;
-        } else if (rabbits < 80) {
-            Rabbit.currentDivideThreshold = 16;
-            Rabbit.currentMax = 220;
-        } else {
-            Rabbit.currentDivideThreshold = 20;
-            Rabbit.currentMax = 180;
-        }
-
-        // Аналогично кроликам
-        if (wolves < 5) {
-            Wolf.currentDivideThreshold = 18;
-            Wolf.currentMax = 35;
-        } else if (wolves < 12) {
-            Wolf.currentDivideThreshold = 20;
-            Wolf.currentMax = 30;
-        } else {
-            Wolf.currentDivideThreshold = 24;
-            Wolf.currentMax = 22;
-        }
-    }
 
     public void simulation() {
         stepCounter++;
-        updateLimits();
 
         // создаем копию и проходимся по ней. Копия - список. Оригинал - двумерный массив
         List<Agent> snapshot = new ArrayList<>();

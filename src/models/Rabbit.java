@@ -7,10 +7,9 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Rabbit extends Agent {
 
 
-    protected int visRange = 3;   // кролик видит растение на 3
+    protected int visRange = 2;   // кролик видит растение на 3
 
-    public static int currentMax = 200;
-    public static int currentDivideThreshold = 18;
+    public static int currentDivideThreshold = 50;
 
     Rabbit(int x, int y, int energy, Agent[][] field, int range) {
         super(x, y, energy, field, "Rabbit", "Plant", range);
@@ -18,6 +17,7 @@ public class Rabbit extends Agent {
 
     @Override
     public void act() {
+        energy--;
         // 1. Угроза — бежим
         List<int[]> threats = look("Wolf");
         if (!threats.isEmpty()) {
@@ -77,17 +77,6 @@ public class Rabbit extends Agent {
             if (d < bestLen) { bestLen = d; best = p; }
         }
         return best;
-    }
-
-    @Override
-    protected boolean canDivide() {
-        int count = 0;
-        for (int i = 0; i < range; i++)
-            for (int j = 0; j < range; j++)
-                if (field[i][j] != null && field[i][j].isAlive()
-                        && "Rabbit".equals(field[i][j].getType()))
-                    count++;
-        return count < currentMax;
     }
 
     @Override

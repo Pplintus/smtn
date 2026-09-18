@@ -6,6 +6,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public abstract class Agent {
     protected int x, y;
+    protected int startEnergy;
     protected int energy;
     protected int max_nrg = 12;
     // protected int v_range = 2; пока закомментим, все равно значения у кроликов и волков разные
@@ -19,6 +20,7 @@ public abstract class Agent {
                  String preyType, int range) {
         this.x = x;
         this.y = y;
+        this.startEnergy = energy;
         this.energy = energy;
         this.field = field;
         this.type = type;
@@ -31,52 +33,36 @@ public abstract class Agent {
     protected abstract int[] near(List<int[]> found);
     protected abstract Agent createChild(int cx, int cy, int childEnergy);
 
-
-
     protected void move(int dx, int dy) {
-        int mainX, mainY, sideX, sideY;
-        if (Math.abs(dx) >= Math.abs(dy)) {
-            mainX = Integer.signum(dx); mainY = 0;
-            sideX = 0; sideY = Integer.signum(dy);
-        } else {
-            mainX = 0; mainY = Integer.signum(dy);
-            sideX = Integer.signum(dx); sideY = 0;
-        }
+        int tx, ty;
+        if(Math.abs(dx)>=Math.abs(dy)){ tx = Integer.signum(dx);; ty = 0;
+        } else {tx = 0; ty = Integer.signum(dy);}
 
-        List<int[]> candidates = new ArrayList<>();
-        candidates.add(new int[]{mainX, mainY});
-        if (sideX != 0 || sideY != 0) {
-            candidates.add(new int[]{sideX, sideY});
-        }
-        candidates.add(new int[]{mainX + sideX, mainY + sideY});
-        candidates.add(new int[]{-mainX, -mainY});
+        int[][] directions = {
+                {tx, ty},
+                {-tx, -ty},
+                {ty, -tx},
+                {-ty, tx}
+        };
 
-        for (int[] c : candidates) {
-            int sx = c[0], sy = c[1];
-            if (sx == 0 && sy == 0) continue;
+        for (int i = 0; i < directions.length; i++) {
+            int nx = x + directions[i][0];
+            int ny = y + directions[i][1];
 
-            int nx = x + sx;
-            int ny = y + sy;
-
-            if (nx < 0 || nx >= range || ny < 0 || ny >= range) continue;
-
-            Agent other = field[nx][ny];
-
-            if (other == null) {
-                field[x][y] = null;
-                x = nx; y = ny;
-                field[x][y] = this;
-                energy -= 1;
-                return;
-            }
-
-            if (other.isAlive() && preyType != null
-                    && other.getType().equals(preyType)) {
-                eat(other);
-                return;
+            if (nx >= 0 && nx < range && ny >= 0 && ny < range) {
+                if (field[nx][ny] == null) {
+                    field[x][y] = null;
+                    x = nx;
+                    y = ny;
+                    field[x][y] = this;
+                    return;
+                } else if (field[nx][ny].isAlive() && field[nx][ny].getType().equals(preyType)) {
+                    eat(field[nx][ny]);
+                    return;
+                }
             }
         }
-        // Все заняты — стоим, не тратим
+        // Если все направления заняты, остаёмся на месте
     }
 
     protected void eat(Agent prey) {
@@ -92,7 +78,6 @@ public abstract class Agent {
 
         x = px; y = py;
         field[x][y] = this;
-        energy -= 1;
     }
 
     public void die() {
@@ -102,10 +87,8 @@ public abstract class Agent {
         }
     }
 
-    protected static final int CHILD_BUFFER = 4; // дополнительная энергия к ребенку, чтоб была не половина
 
     public void div() {
-        if (!canDivide()) return;
 
         int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};
         List<int[]> free = new ArrayList<>();
@@ -116,16 +99,14 @@ public abstract class Agent {
                 free.add(new int[]{nx, ny});
             }
         }
-        if (free.isEmpty()) return;
+        if (free.isEmpty()) { energy = startEnergy;return; }
 
         int[] spot = free.get(ThreadLocalRandom.current().nextInt(free.size()));
-        int childEnergy = energy / 2 + CHILD_BUFFER;
-        if (childEnergy >= energy) childEnergy = Math.max(1, energy - 1);
-        energy -= childEnergy;
+        int childEnergy = startEnergy;
+        energy = startEnergy;
         field[spot[0]][spot[1]] = createChild(spot[0], spot[1], childEnergy);
     }
 
-    protected boolean canDivide() { return true; }
 
     protected double len(int dx, int dy) {
         return Math.sqrt(Math.pow(x - dx, 2) + Math.pow(y - dy, 2));

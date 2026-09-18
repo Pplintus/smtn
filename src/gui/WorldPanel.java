@@ -5,7 +5,10 @@ import models.Environment;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.util.function.Consumer;
 
 public class WorldPanel extends JPanel {
     private final Environment world;
@@ -15,6 +18,9 @@ public class WorldPanel extends JPanel {
     private final BufferedImage rabbitImg;
     private final BufferedImage wolfImg;
     private final BufferedImage dirtImg;
+
+    /** Колбэк, который вызовется при клике по клетке с агентом. */
+    private Consumer<Agent> onAgentClick;
 
     public WorldPanel(Environment world, int cellSize) {
         this.world = world;
@@ -29,6 +35,32 @@ public class WorldPanel extends JPanel {
                 world.getRange() * cellSize,
                 world.getRange() * cellSize));
         setBackground(Color.WHITE);
+
+        // обработчик кликов
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                handleClick(e.getX(), e.getY());
+            }
+        });
+    }
+
+    /** Устанавливает обработчик клика по агенту. */
+    public void setOnAgentClick(Consumer<Agent> callback) {
+        this.onAgentClick = callback;
+    }
+
+    private void handleClick(int px, int py) {
+        int row = py / cellSize;   // i — строка
+        int col = px / cellSize;   // j — столбец
+
+        int range = world.getRange();
+        if (row < 0 || row >= range || col < 0 || col >= range) return;
+
+        Agent a = world.field[row][col];
+        if (a != null && a.isAlive() && onAgentClick != null) {
+            onAgentClick.accept(a);
+        }
     }
 
     @Override
@@ -49,7 +81,6 @@ public class WorldPanel extends JPanel {
                 int py = i * cellSize;
 
                 if (a == null || !a.isAlive()) {
-                    // пустая клетка → земля
                     if (dirtImg != null) {
                         g2.drawImage(dirtImg, px, py, null);
                     } else {
@@ -57,7 +88,6 @@ public class WorldPanel extends JPanel {
                         g2.fillRect(px, py, cellSize, cellSize);
                     }
                 } else {
-                    // сначала земля под агентом — чтобы фон не был «дырявым»
                     if (dirtImg != null) {
                         g2.drawImage(dirtImg, px, py, null);
                     } else {

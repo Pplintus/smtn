@@ -1,5 +1,5 @@
 //import models.Environment;
-//
+
 //public class Main {
 //    public static void main(String[] args) throws InterruptedException {
 //
@@ -27,7 +27,7 @@ public class Main {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             int range = 30;
-            Environment world = new Environment(range, 300, 80, 12);
+            Environment world = new Environment(range, 300, 150, 12);
             int cellSize = 20;
             new SimulationFrame(world, cellSize).setVisible(true);
         });
