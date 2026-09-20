@@ -160,8 +160,6 @@ public class Environment {
                     }
                 }
 
-                // %-3s означает: вывести строку, выровнять по левому краю
-                // и дополнить пробелами до строго 3 символов в ширину
                 System.out.printf("|%-3s", cellContent);
             }
             System.out.printf("|%n");
